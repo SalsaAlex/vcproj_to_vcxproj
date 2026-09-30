@@ -14,11 +14,11 @@ def makeelementwtext(elname, text):
 
 def configtype_map(map):
     result = ""
-    if map == 1:
+    if map == "1":
         result = "Application"
-    elif map == 2:
+    elif map == "2":
         result = "DynamicLibrary"
-    elif map == 4:
+    elif map == "4":
         result = "StaticLibrary"
     return result
 
@@ -174,21 +174,29 @@ def to_vcxproj(vcproj_xmlfilepath : str):
         vcxproj_projconfigs.append(projconfig)
     
     files = vcproj_xmltree.find("Files")
-    for filters in list(files.iter("Filter")):
-        filtername = filters.attrib["Name"]
-        vcxproj_declarefilters.append(ET.Element("Filter", {"Include":filtername}))
-        for file in filters.iter("File"):
+    if files.find("Filter") != None:
+        for filters in list(files.iter("Filter")):
+            filtername = filters.attrib["Name"]
+            vcxproj_declarefilters.append(ET.Element("Filter", {"Include":filtername}))
+            for file in filters.iter("File"):
+                path = file.attrib["RelativePath"]
+                if path.endswith(".h") or path.endswith(".hpp"):
+                    vcxproj_includeitems.append(ET.Element("ClInclude", {"Include": path}))
+                    headerfilefilter = ET.Element("ClInclude", {"Include": path})
+                    headerfilefilter.append(makeelementwtext("Filter", filtername))
+                    vcxproj_declareheaders.append(headerfilefilter)
+                else:
+                    vcxproj_compileitems.append(ET.Element("ClCompile", {"Include": path}))
+                    sourcefilefilter = ET.Element("ClCompile", {"Include": path})
+                    sourcefilefilter.append(makeelementwtext("Filter", filtername))
+                    vcxproj_declaresources.append(sourcefilefilter)
+    else:
+        for file in list(files.iter("File")):
             path = file.attrib["RelativePath"]
             if path.endswith(".h") or path.endswith(".hpp"):
                 vcxproj_includeitems.append(ET.Element("ClInclude", {"Include": path}))
-                headerfilefilter = ET.Element("ClInclude", {"Include": path})
-                headerfilefilter.append(makeelementwtext("Filter", filtername))
-                vcxproj_declareheaders.append(headerfilefilter)
             else:
                 vcxproj_compileitems.append(ET.Element("ClCompile", {"Include": path}))
-                sourcefilefilter = ET.Element("ClCompile", {"Include": path})
-                sourcefilefilter.append(makeelementwtext("Filter", filtername))
-                vcxproj_declaresources.append(sourcefilefilter)
     
     ET.indent(vcxproj_entry)
     ET.indent(vcxproj_filters)
