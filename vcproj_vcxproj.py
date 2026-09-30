@@ -53,10 +53,12 @@ def to_vcxproj(vcproj_xmlfilepath : str):
                 defines = toolconfig.attrib["PreprocessorDefinitions"]              if "PreprocessorDefinitions" in toolconfig.attrib else ""
                 includes = toolconfig.attrib["AdditionalIncludeDirectories"]        if "AdditionalIncludeDirectories" in toolconfig.attrib else ""
             if toolconfig.attrib["Name"] == "VCLinkerTool":
-                subsystem = "Windows" if toolconfig.attrib["SubSystem"]==2 else "Console"
+                if "SubSystem" in toolconfig.attrib:
+                    subsystem = "Windows" if toolconfig.attrib["SubSystem"]==2 else "Console"
                 additlibdirs = toolconfig.attrib["AdditionalLibraryDirectories"]    if "AdditionalLibraryDirectories" in toolconfig.attrib else ""
                 additlibs = toolconfig.attrib["AdditionalDependencies"]             if "AdditionalDependencies" in toolconfig.attrib else ""
-                gendebuginfo = 1 if toolconfig.attrib["GenerateDebugInformation"]=="true" else 0
+                if "GenerateDebugInformation" in toolconfig.attrib:
+                    gendebuginfo = 1 if toolconfig.attrib["GenerateDebugInformation"]=="true" else 0
     
         #fixup additional dependencies
         additlibs = additlibs.replace(" ", ";")
