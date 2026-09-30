@@ -49,13 +49,13 @@ def to_vcxproj(vcproj_xmlfilepath : str):
     
         for toolconfig in configuration.iter("Tool"):
             if toolconfig.attrib["Name"] == "VCCLCompilerTool":
-                warninglevel = locale.atoi(toolconfig.attrib["WarningLevel"]) if toolconfig.attrib["WarningLevel"]!=None else 0
-                defines = toolconfig.attrib["PreprocessorDefinitions"]  if toolconfig.attrib["PreprocessorDefinitions"]!=None else ""
-                includes = toolconfig.attrib["AdditionalIncludeDirectories"]  if toolconfig.attrib["AdditionalIncludeDirectories"]!=None else ""
+                warninglevel = locale.atoi(toolconfig.attrib["WarningLevel"])       if "WarningLevel" in toolconfig.attrib else 0
+                defines = toolconfig.attrib["PreprocessorDefinitions"]              if "PreprocessorDefinitions" in toolconfig.attrib else ""
+                includes = toolconfig.attrib["AdditionalIncludeDirectories"]        if "AdditionalIncludeDirectories" in toolconfig.attrib else ""
             if toolconfig.attrib["Name"] == "VCLinkerTool":
                 subsystem = "Windows" if toolconfig.attrib["SubSystem"]==2 else "Console"
-                additlibdirs = toolconfig.attrib["AdditionalLibraryDirectories"] if toolconfig.attrib["AdditionalLibraryDirectories"]!=None else ""
-                additlibs = toolconfig.attrib["AdditionalDependencies"] if toolconfig.attrib["AdditionalDependencies"]!=None else ""
+                additlibdirs = toolconfig.attrib["AdditionalLibraryDirectories"]    if "AdditionalLibraryDirectories" in toolconfig.attrib else ""
+                additlibs = toolconfig.attrib["AdditionalDependencies"]             if "AdditionalDependencies" in toolconfig.attrib else ""
                 gendebuginfo = 1 if toolconfig.attrib["GenerateDebugInformation"]=="true" else 0
     
         #fixup additional dependencies
