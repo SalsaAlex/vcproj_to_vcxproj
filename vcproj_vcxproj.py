@@ -12,6 +12,16 @@ def makeelementwtext(elname, text):
     elret.text = text
     return elret
 
+def configtype_map(map):
+    result = ""
+    if map == 1:
+        result = "Application"
+    elif map == 2:
+        result = "DynamicLibrary"
+    elif map == 4:
+        result = "StaticLibrary"
+    return result
+
 #returns .vcxproj and .vcxproj.filters
 def to_vcxproj(vcproj_xmlfilepath : str):
     wheretosavevcxproj = vcproj_xmlfilepath[:str(vcproj_xmlfilepath).rfind(".")] + ".vcxproj"
@@ -39,6 +49,9 @@ def to_vcxproj(vcproj_xmlfilepath : str):
         name = configuration.attrib["Name"]
         type = name[:name.rfind("|")]
         platform = name[name.find("|")+1:]
+        configtype = configuration.attrib["ConfigurationType"]
+        outdir = configuration.attrib["OutputDirectory"]
+        intdir = configuration.attrib["IntermediateDirectory"]
         warninglevel = 0
         subsystem = ""
         gendebuginfo = 0
@@ -72,9 +85,13 @@ def to_vcxproj(vcproj_xmlfilepath : str):
                         "defines":defines,
                         "includes":includes,
                         
+                        "outdir":outdir,
+                        "intdir":intdir,
+                        
                         "name":name, 
                         "type":type, 
-                        "platform":platform
+                        "platform":platform,
+                        "configtype":configtype
                         })
     
     
@@ -85,7 +102,7 @@ def to_vcxproj(vcproj_xmlfilepath : str):
         propertygroupconfig = ET.Element("PropertyGroup", 
                                          {"Condition":f"'$(Configuration)|$(Platform)'=='{entry["name"]}'",
                                           "Label":"Configuration"})
-        propertygroupconfig.append(makeelementwtext("ConfigurationType", "Application"))
+        propertygroupconfig.append(makeelementwtext("ConfigurationType", configtype_map(entry["configtype"])))
         propertygroupconfig.append(makeelementwtext("UseDebugLibraries", "true" if entry["type"]=="Debug" else "false"))
         propertygroupconfig.append(makeelementwtext("PlatformToolset", "v143"))
         propertygroupconfig.append(makeelementwtext("CharacterSet", "NotSet"))
@@ -104,6 +121,11 @@ def to_vcxproj(vcproj_xmlfilepath : str):
                                           "Label":"LocalAppDataPlatform"}))
         vcxproj_entry.append(propertysheets)
     vcxproj_entry.append(ET.Element("PropertyGroup", {"Label":"UserMacros"}))
+    propertygroupdirsettings = ET.Element("PropertyGroup", 
+                                 {"Condition":f"'$(Configuration)|$(Platform)'=='{configs[0]["name"]}'"})
+    propertygroupdirsettings.append(makeelementwtext("OutDir", configs[0]["outdir"]))
+    propertygroupdirsettings.append(makeelementwtext("IntDir", configs[0]["intdir"]))
+    vcxproj_entry.append(propertygroupdirsettings)
     
     for entry in configs:
         itemdefgroup = ET.Element("ItemDefinitionGroup", 
